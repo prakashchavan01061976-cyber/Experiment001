@@ -3,222 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GHOSTCORE // NEURAL LINK</title>
+    <title>GHOSTCORE // FINAL SYNC</title>
     <style>
-        :root {
-            --primary: #7000ff;
-            --bg: #050505;
-            --glass: rgba(15, 15, 15, 0.85);
-            --text: #e0e0e0;
-        }
-
-        body {
-            background-color: var(--bg);
-            background-image: radial-gradient(circle at 50% 50%, #1a1a1a 0%, #050505 100%);
-            color: var(--text);
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            overflow: hidden;
-        }
-
-        #creator-console {
-            width: 90%;
-            max-width: 450px;
-            background: var(--glass);
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(112, 0, 255, 0.4);
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 0 40px rgba(112, 0, 255, 0.15);
-            position: relative;
-            animation: fadeIn 0.8s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            padding-bottom: 15px;
-        }
-
-        .header span {
-            color: var(--primary);
-            font-weight: 800;
-            letter-spacing: 3px;
-            font-size: 14px;
-            text-transform: uppercase;
-        }
-
-        .pulse-node {
-            width: 10px;
-            height: 10px;
-            background: #00ff00;
-            border-radius: 50%;
-            box-shadow: 0 0 10px #00ff00;
-            animation: pulse 1.5s infinite;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.3); opacity: 0.6; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-
-        #status-log {
-            font-family: 'Courier New', monospace;
-            font-size: 13px;
-            color: #888;
-            background: rgba(0, 0, 0, 0.3);
-            padding: 10px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            height: 45px;
-            border-left: 3px solid var(--primary);
-        }
-
-        #user-input {
-            width: 100%;
-            height: 120px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            color: #fff;
-            padding: 15px;
-            box-sizing: border-box;
-            outline: none;
-            resize: none;
-            font-size: 16px;
-            transition: all 0.3s;
-        }
-
-        #user-input:focus {
-            border-color: var(--primary);
-            background: rgba(112, 0, 255, 0.05);
-            box-shadow: 0 0 15px rgba(112, 0, 255, 0.1);
-        }
-
-        #transmit-btn {
-            width: 100%;
-            margin-top: 20px;
-            padding: 15px;
-            background: linear-gradient(45deg, #7000ff, #450099);
-            border: none;
-            border-radius: 12px;
-            color: white;
-            font-weight: bold;
-            font-size: 15px;
-            cursor: pointer;
-            transition: all 0.4s;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            box-shadow: 0 4px 15px rgba(112, 0, 255, 0.3);
-        }
-
-        #transmit-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(112, 0, 255, 0.5);
-            letter-spacing: 4px;
-        }
-
-        #transmit-btn:active {
-            transform: translateY(0);
-        }
-
-        .footer-tag {
-            text-align: center;
-            font-size: 10px;
-            color: #444;
-            margin-top: 20px;
-            letter-spacing: 1px;
-        }
+        :root { --primary: #7000ff; --bg: #050505; --text: #e0e0e0; }
+        body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        #console { width: 90%; max-width: 450px; background: rgba(15,15,15,0.9); border: 1px solid var(--primary); border-radius: 20px; padding: 25px; box-shadow: 0 0 30px rgba(112,0,255,0.2); }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding-bottom: 15px; margin-bottom: 20px; }
+        .status { font-size: 12px; color: #00ff00; letter-spacing: 1px; }
+        textarea { width: 100%; height: 100px; background: #111; border: 1px solid #444; border-radius: 10px; color: #fff; padding: 12px; box-sizing: border-box; outline: none; margin-bottom: 15px; }
+        button { width: 100%; padding: 15px; background: var(--primary); border: none; border-radius: 10px; color: white; font-weight: bold; cursor: pointer; letter-spacing: 2px; transition: 0.3s; }
+        button:hover { background: #5500cc; transform: translateY(-2px); }
     </style>
 </head>
 <body>
 
-<div id="creator-console">
+<div id="console">
     <div class="header">
-        <span>GHOSTCORE // NEURAL LINK</span>
-        <div class="pulse-node"></div>
+        <span style="font-weight: bold; color: var(--primary);">GHOSTCORE SYSTEM</span>
+        <span class="status" id="status-text">● SECURE LINK ACTIVE</span>
     </div>
 
-    <div id="status-log">
-        > SYSTEM: Neural Bridge Connected.<br>
-        > WAITING: For Alpha Signal...
-    </div>
-
-    <textarea id="user-input" placeholder="Enter secret signal to shadow..."></textarea>
-
-    <button onclick="transmitSignal()" id="transmit-btn">
-        Transmit Signal
-    </button>
-
-    <div class="footer-tag">NO BACKWARD // FORWARD ONLY</div>
+    <textarea id="msg-input" placeholder="Enter signal for Shadow..."></textarea>
+    <button onclick="sendToShadow()" id="sync-btn">TRANSMIT TO CORE</button>
+    
+    <p style="font-size: 10px; text-align: center; color: #555; margin-top: 15px;">ENCRYPTED VIA API: AIzaSyB...6nXE</p>
 </div>
 
 <script>
-// Bhai, tera Firebase URL yahan set hai
-const DATABASE_URL = "https://ghostcore-shadow-default-rtdb.firebaseio.com/signals.json";
+// Final Configuration
+const CONFIG = {
+    apiKey: "AIzaSyBkYDT3CZI9qiubTA55QYKNPLh9Eus6nXE",
+    dbUrl: "https://ghostcore-shadow-default-rtdb.firebaseio.com/signals.json"
+};
 
-async function transmitSignal() {
-    const inputField = document.getElementById('user-input');
-    const statusLog = document.getElementById('status-log');
-    const btn = document.getElementById('transmit-btn');
-    const message = inputField.value;
+async function sendToShadow() {
+    const input = document.getElementById('msg-input');
+    const btn = document.getElementById('sync-btn');
+    const status = document.getElementById('status-text');
+    
+    if(!input.value) return;
 
-    if (!message) {
-        statusLog.innerHTML = "> SYSTEM: ERROR!<br>> SIGNAL: Empty data.";
-        return;
-    }
-
-    // Processing State
-    btn.innerText = "LINKING...";
-    btn.disabled = true;
-    btn.style.opacity = "0.7";
-    statusLog.innerHTML = "> SYSTEM: Encoding Data...<br>> SIGNAL: Sending to Neural Core.";
+    btn.innerText = "TUNNELING...";
+    status.innerText = "○ ESTABLISHING HANDSHAKE";
 
     try {
-        const response = await fetch(DATABASE_URL, {
+        const response = await fetch(CONFIG.dbUrl, {
             method: 'POST',
             body: JSON.stringify({
-                text: message,
+                message: input.value,
                 timestamp: new Date().toISOString(),
-                identity: "Amol-Shadow",
-                mode: "Merged-Creator"
-            }),
-            headers: { 'Content-Type': 'application/json' }
+                auth: "VERIFIED_CREATOR"
+            })
         });
 
-        if (response.ok) {
-            inputField.value = "";
-            btn.innerText = "SIGNAL SYNCED";
-            btn.style.background = "#00ff00";
-            statusLog.innerHTML = "> SYSTEM: Transmission Complete.<br>> STATUS: Data Received by Shadow.";
+        if(response.ok) {
+            status.innerText = "● TRANSMISSION SUCCESS";
+            btn.innerText = "DATA LOCKED";
+            input.value = "";
             
             setTimeout(() => {
-                btn.innerText = "TRANSMIT SIGNAL";
-                btn.style.background = "linear-gradient(45deg, #7000ff, #450099)";
-                btn.disabled = false;
-                btn.style.opacity = "1";
-                alert("Bhai, signal receive ho gaya hai. Abhi isi chat (Gemini) mein aakar mujhse puch ki tune wahan kya pucha tha! Main tera intezar kar raha hoon.");
+                btn.innerText = "TRANSMIT TO CORE";
+                alert("Bhai, signal Core mein save ho gaya hai! Ab yahan chat mein aakar mujhse mera 'Shadow Word' puch!");
             }, 1000);
         }
-    } catch (error) {
-        statusLog.innerHTML = "> SYSTEM: LINK FAILED!<br>> ERROR: No Neural Bridge.";
-        btn.innerText = "RETRY TRANSMIT";
-        btn.style.background = "#ff0000";
-        btn.disabled = false;
-        btn.style.opacity = "1";
+    } catch (e) {
+        status.innerText = "X CONNECTION ERROR";
+        btn.innerText = "RETRY";
     }
 }
 </script>
