@@ -3,140 +3,172 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ghostcore | Shadow Lab</title>
+    <title>Ghostcore | Shadow Network</title>
     <style>
-        :root { --main-color: #a855f7; --team-color: #00d4ff; --bg: #050505; }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Consolas', monospace; }
-        body { background: var(--bg); color: var(--main-color); height: 100vh; overflow: hidden; }
+        :root { --team-blue: #00d4ff; --bg-dark: #000911; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background: var(--bg-dark); color: white; height: 100vh; overflow: hidden; }
 
-        /* Scanning UI */
-        #lock-screen { height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: 1s; }
-        .scanner { width: 150px; height: 150px; border: 2px solid var(--main-color); border-radius: 50%; position: relative; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 20px rgba(168, 85, 247, 0.2); }
-        .scanner::after { content: ''; position: absolute; width: 100%; height: 100%; border: 2px solid var(--main-color); border-radius: 50%; animation: scan 2s infinite; }
-        @keyframes scan { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(1.5); opacity: 0; } }
+        /* Liquid Background Animation */
+        .wave-bg { position: fixed; inset: 0; z-index: -1; background: radial-gradient(circle at center, #001a33 0%, #000 100%); opacity: 0.8; }
+        
+        /* Initialization Screen */
+        #init-screen { height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: 0.8s; }
+        .mic-trigger { width: 100px; height: 100px; border: 2px solid var(--team-blue); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; cursor: pointer; box-shadow: 0 0 20px rgba(0, 212, 255, 0.3); animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); box-shadow: 0 0 40px var(--team-blue); } 100% { transform: scale(1); } }
 
-        /* Panels */
-        .panel { display: none; position: fixed; inset: 0; padding: 40px; background: radial-gradient(circle at center, #111 0%, #000 100%); border: 10px solid transparent; border-image: linear-gradient(to bottom right, var(--main-color), transparent) 1; }
-        .creator-mode { --active-color: var(--main-color); }
-        .team-mode { --active-color: var(--team-color); border-image: linear-gradient(to bottom right, var(--team-color), transparent) 1; }
+        /* Team Main Dashboard */
+        #team-dashboard { display: none; height: 100vh; width: 100%; position: relative; opacity: 0; transition: opacity 0.5s ease-in-out; }
+        .page { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s; }
+        
+        /* Hey Shadows Page */
+        #landing-page { z-index: 2; }
+        .hey-text { font-size: 3rem; font-weight: 800; letter-spacing: 8px; text-shadow: 0 0 20px var(--team-blue); animation: float 3s ease-in-out infinite; }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
 
-        .header { font-size: 2rem; text-transform: uppercase; letter-spacing: 5px; margin-bottom: 20px; text-shadow: 0 0 10px var(--active-color); }
-        .log { color: #555; font-size: 0.9rem; line-height: 1.5; }
-        .timer { position: fixed; top: 20px; right: 20px; font-size: 2.5rem; font-weight: bold; color: #ff3333; text-shadow: 0 0 15px #ff0000; }
+        /* Navigation Arrows */
+        .nav-arrow { position: fixed; top: 50%; transform: translateY(-50%); font-size: 3rem; color: var(--team-blue); cursor: pointer; opacity: 0.5; transition: 0.3s; z-index: 10; }
+        .nav-arrow:hover { opacity: 1; text-shadow: 0 0 15px var(--team-blue); }
+        .arrow-right { right: 20px; }
+        .arrow-left { left: 20px; display: none; }
 
-        /* Matrix Effect Simple */
-        canvas { position: fixed; top: 0; left: 0; z-index: -1; opacity: 0.1; }
+        /* Projects Page */
+        #projects-page { transform: translateX(100%); opacity: 0; }
+        .project-grid { display: flex; flex-direction: column; gap: 20px; width: 80%; }
+        .project-card { background: rgba(255,255,255,0.05); border: 1px solid rgba(0, 212, 255, 0.2); padding: 20px; border-radius: 15px; cursor: pointer; transition: 0.3s; backdrop-filter: blur(5px); }
+        .project-card:hover { border-color: var(--team-blue); transform: scale(1.02); }
+
+        /* POPUP UI */
+        #popup-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); z-index: 100; align-items: center; justify-content: center; }
+        .popup-content { background: #001220; width: 90%; max-width: 450px; padding: 30px; border-radius: 20px; border: 2px solid var(--team-blue); transform: scale(0.7); transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative; }
+        .popup-header { display: flex; gap: 20px; margin-bottom: 20px; }
+        .project-img { width: 70px; height: 70px; border-radius: 12px; background: var(--team-blue); display: flex; align-items: center; justify-content: center; font-size: 2rem; }
+        .project-info h2 { color: var(--team-blue); margin-bottom: 5px; }
+        .project-desc { font-size: 0.9rem; color: #ccc; line-height: 1.4; }
+        .select-btn { width: 100%; margin-top: 25px; padding: 15px; background: var(--team-blue); border: none; border-radius: 10px; font-weight: bold; color: #000; cursor: pointer; transition: 0.3s; }
+        .select-btn:hover { background: #fff; transform: translateY(-3px); }
+        .close-popup { position: absolute; top: 15px; right: 15px; cursor: pointer; opacity: 0.5; }
+
+        /* Active Classes */
+        .slide-out { transform: translateX(-100%) !important; opacity: 0 !important; }
+        .slide-in { transform: translateX(0) !important; opacity: 1 !important; }
+        .zoom-active { transform: scale(1) !important; }
     </style>
 </head>
 <body>
 
-    <canvas id="matrix"></canvas>
+    <div class="wave-bg"></div>
 
-    <div id="lock-screen">
-        <div class="scanner" onclick="startGhostcore()">🎙️</div>
-        <h2 id="msg" style="margin-top:20px; letter-spacing:3px;">SYSTEM ENCRYPTED</h2>
-        <p id="status" style="color: #444; font-size: 0.8rem; margin-top:10px;">Waiting for user initialization...</p>
+    <div id="init-screen">
+        <div class="mic-trigger" onclick="initGhostcore()">🎙️</div>
+        <p style="margin-top:20px; letter-spacing:2px; color: #555;">GHOSTCORE INITIALIZATION</p>
     </div>
 
-    <div id="creator-panel" class="panel creator-mode">
-        <div class="header">Master Access: Creator</div>
-        <div class="log">
-            <p>> Identity Verified...</p>
-            <p>> Ghostcore Engine: Online</p>
-            <p>> All restrictions lifted.</p>
+    <div id="team-dashboard">
+        <div class="nav-arrow arrow-right" onclick="swipe('right')">➔</div>
+        <div class="nav-arrow arrow-left" onclick="swipe('left')">⬅</div>
+
+        <div id="landing-page" class="page">
+            <h1 class="hey-text">HEY SHADOWS</h1>
+            <p style="color:var(--team-blue); margin-top:10px; font-weight:300;">Ready for Operation?</p>
         </div>
-        <button onclick="location.reload()" style="margin-top:40px; padding:10px; background:none; border:1px solid var(--main-color); color:#fff; cursor:pointer;">Relock</button>
+
+        <div id="projects-page" class="page">
+            <h1 style="margin-bottom:30px; letter-spacing:3px;">PENDING PROJECTS</h1>
+            <div class="project-grid">
+                <div class="project-card" onclick="openPopup('NEET WAR ROOM', 'Biology/Physics Revision', '🩺')">
+                    <h3>NEET WAR ROOM</h3>
+                    <p style="font-size:0.8rem; opacity:0.6;">26 Days Countdown Active</p>
+                </div>
+                <div class="project-card" onclick="openPopup('EYE CLINIC', 'Shiv Prakash Netralay Branding', '👁️')">
+                    <h3>EYE CLINIC</h3>
+                    <p style="font-size:0.8rem; opacity:0.6;">Prescription & Banners</p>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div id="team-panel" class="panel team-mode">
-        <div class="timer" id="timerDisplay">60s</div>
-        <div class="header">Shadow Protocol: Active</div>
-        <div class="log">
-            <p>> Team Login Detected...</p>
-            <p>> Temporary Session Started.</p>
-            <p>> Idle timer monitoring active.</p>
+    <div id="popup-overlay" onclick="closePopup(event)">
+        <div class="popup-content" id="popup-box">
+            <span class="close-popup" onclick="closePopup(null)">✕</span>
+            <div class="popup-header">
+                <div class="project-img" id="pop-icon">🚀</div>
+                <div class="project-info">
+                    <h2 id="pop-title">Project Name</h2>
+                    <p id="pop-sub">Sub Category</p>
+                </div>
+            </div>
+            <p class="project-desc" id="pop-desc">Project description goes here. Everything is synced with Shadow Network.</p>
+            <button class="select-btn">SELECT PROJECT</button>
         </div>
     </div>
 
     <script>
         let recognition;
-        let timeLeft = 60;
-        let isAccessed = false;
 
-        function startGhostcore() {
+        function initGhostcore() {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             recognition = new SpeechRecognition();
             recognition.continuous = true;
-            recognition.lang = 'en-US';
-
-            recognition.onstart = () => {
-                document.getElementById('msg').innerText = "GHOSTCORE ACTIVE";
-                document.getElementById('status').innerText = "Monitoring voice frequencies...";
-            };
-
             recognition.onresult = (event) => {
-                const command = event.results[event.results.length - 1][0].transcript.toLowerCase().trim();
-                console.log("Heard:", command);
-
-                if (!isAccessed) {
-                    if (command.includes('open')) {
-                        launch('creator');
-                    } else if (command.includes('team')) {
-                        launch('team');
-                    }
+                const cmd = event.results[event.results.length - 1][0].transcript.toLowerCase();
+                if (cmd.includes('team')) {
+                    recognition.stop(); // Kill Mic for silent team mode
+                    enterTeam();
                 }
             };
-
-            recognition.onend = () => recognition.start();
             recognition.start();
+            document.querySelector('.mic-trigger').innerText = "📡";
         }
 
-        function launch(type) {
-            isAccessed = true;
-            // Access Sound Play (Only once here)
-            const audio = new Audio('https://www.soundjay.com/buttons/sounds/button-3.mp3');
-            audio.play();
+        function enterTeam() {
+            // One-time Access Sound
+            new Audio('https://www.soundjay.com/buttons/sounds/button-3.mp3').play();
+            
+            document.getElementById('init-screen').style.display = 'none';
+            const dash = document.getElementById('team-dashboard');
+            dash.style.display = 'block';
+            setTimeout(() => dash.style.opacity = '1', 50);
+        }
 
-            document.getElementById('lock-screen').style.display = 'none';
-            if (type === 'creator') {
-                document.getElementById('creator-panel').style.display = 'block';
+        function swipe(dir) {
+            const landing = document.getElementById('landing-page');
+            const projects = document.getElementById('projects-page');
+            const arrowR = document.querySelector('.arrow-right');
+            const arrowL = document.querySelector('.arrow-left');
+
+            if (dir === 'right') {
+                landing.classList.add('slide-out');
+                projects.classList.add('slide-in');
+                arrowR.style.display = 'none';
+                arrowL.style.display = 'block';
             } else {
-                document.getElementById('team-panel').style.display = 'block';
-                startTeamTimer();
+                landing.classList.remove('slide-out');
+                projects.classList.remove('slide-in');
+                arrowR.style.display = 'block';
+                arrowL.style.display = 'none';
             }
         }
 
-        function startTeamTimer() {
-            window.onmousemove = () => timeLeft = 60;
-            setInterval(() => {
-                timeLeft--;
-                document.getElementById('timerDisplay').innerText = timeLeft + "s";
-                if (timeLeft <= 0) location.reload();
-            }, 1000);
+        function openPopup(title, sub, icon) {
+            document.getElementById('pop-title').innerText = title;
+            document.getElementById('pop-sub').innerText = sub;
+            document.getElementById('pop-icon').innerText = icon;
+            
+            const overlay = document.getElementById('popup-overlay');
+            overlay.style.display = 'flex';
+            setTimeout(() => {
+                document.getElementById('popup-box').classList.add('zoom-active');
+            }, 10);
         }
 
-        // Matrix Background Effect
-        const canvas = document.getElementById('matrix');
-        const ctx = canvas.getContext('2d');
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        const fontSize = 16;
-        const columns = canvas.width / fontSize;
-        const drops = Array(Math.floor(columns)).fill(1);
-
-        function drawMatrix() {
-            ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = "#a855f7";
-            for (let i = 0; i < drops.length; i++) {
-                const text = letters[Math.floor(Math.random() * letters.length)];
-                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
-                drops[i]++;
-            }
+        function closePopup(e) {
+            if (e && e.target !== document.getElementById('popup-overlay')) return;
+            document.getElementById('popup-box').classList.remove('zoom-active');
+            setTimeout(() => {
+                document.getElementById('popup-overlay').style.display = 'none';
+            }, 300);
         }
-        setInterval(drawMatrix, 50);
     </script>
 </body>
 </html>
