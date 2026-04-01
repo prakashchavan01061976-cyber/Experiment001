@@ -2,182 +2,208 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Ghostcore | Shadow Network</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ghostcore | Shadow System</title>
     <style>
-        :root { --team-blue: #00d4ff; --creator-purple: #a855f7; --bg-dark: #000911; }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Consolas', monospace; }
-        body { background: var(--bg-dark); color: white; height: 100vh; overflow: hidden; position: fixed; width: 100%; }
+        :root {
+            --core-purple: #a855f7;
+            --war-cyan: #00d4ff;
+            --bg-black: #050505;
+        }
 
-        /* Background Animation */
-        .wave-bg { position: fixed; inset: 0; z-index: -1; background: radial-gradient(circle at center, #001a33 0%, #000 100%); opacity: 0.8; }
-        
-        /* Init Screen */
-        #init-screen { height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: 0.5s; }
-        .mic-trigger { width: 80px; height: 80px; border: 2px solid var(--team-blue); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; cursor: pointer; box-shadow: 0 0 15px rgba(0, 212, 255, 0.3); animation: pulse 2s infinite; }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+        body, html {
+            margin: 0; padding: 0;
+            background: var(--bg-black);
+            color: white;
+            font-family: 'Segoe UI', sans-serif;
+            overflow: hidden;
+            height: 100vh;
+        }
 
-        /* Dashboards */
-        .dashboard { display: none; height: 100vh; width: 100%; position: relative; opacity: 0; transition: opacity 0.5s; }
-        .page { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: transform 0.5s ease-in-out, opacity 0.4s; padding: 20px; text-align: center; }
-        
-        /* Fixed Navigation (Mobile Optimization) */
-        .nav-arrow { position: fixed; bottom: 40px; font-size: 2.2rem; color: var(--team-blue); cursor: pointer; z-index: 50; padding: 15px; text-shadow: 0 0 10px var(--team-blue); }
-        .arrow-right { right: 25px; }
-        .arrow-left { left: 25px; display: none; }
+        /* --- NAVIGATION BUTTONS --- */
+        .nav-zone {
+            position: fixed;
+            bottom: 30px;
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            background: rgba(168, 85, 247, 0.05);
+            border: 1px solid rgba(168, 85, 247, 0.2);
+            box-shadow: 0 0 15px rgba(168, 85, 247, 0.1);
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .left-zone { left: 20px; border-color: var(--core-purple); }
+        .right-zone { right: 20px; border-color: var(--war-cyan); }
+        .nav-zone:active { transform: scale(0.9); background: rgba(168, 85, 247, 0.2); }
 
-        /* Typography */
-        .hey-text { font-size: 2rem; letter-spacing: 4px; text-shadow: 0 0 15px var(--team-blue); }
-        .creator-text { font-size: 2rem; letter-spacing: 4px; color: var(--creator-purple); text-shadow: 0 0 15px var(--creator-purple); }
+        /* --- TERMINAL SCREEN --- */
+        #terminal-screen {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: #000;
+            z-index: 200;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: 0.5s;
+        }
+        .terminal-input {
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid var(--core-purple);
+            color: var(--core-purple);
+            font-family: monospace;
+            font-size: 1.2rem;
+            text-align: center;
+            outline: none;
+            width: 250px;
+            letter-spacing: 5px;
+            margin-top: 20px;
+        }
 
-        /* Cards & Grid */
-        #projects-page { transform: translateX(100%); opacity: 0; }
-        .project-grid { display: flex; flex-direction: column; gap: 15px; width: 100%; max-width: 320px; margin-top: 20px; }
-        .project-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(0, 212, 255, 0.15); padding: 18px; border-radius: 12px; cursor: pointer; backdrop-filter: blur(10px); }
+        /* --- CORE HUB (WAR ROOM) --- */
+        #core-hub {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle at center, #0a0015 0%, #000 100%);
+            z-index: 300;
+            padding: 20px;
+            flex-direction: column;
+        }
 
-        /* Zoom-in Popup */
-        #popup-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.92); backdrop-filter: blur(8px); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
-        .popup-content { background: #001220; width: 100%; max-width: 380px; padding: 25px; border-radius: 20px; border: 1px solid var(--team-blue); transform: scale(0.8); transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .popup-header { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; text-align: left; }
-        .project-img { width: 55px; height: 55px; border-radius: 10px; background: rgba(0, 212, 255, 0.1); border: 1px solid var(--team-blue); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0; }
-        .select-btn { width: 100%; margin-top: 20px; padding: 14px; background: var(--team-blue); border: none; border-radius: 8px; font-weight: bold; color: #000; letter-spacing: 1px; }
+        .core-sphere {
+            width: 120px; height: 120px;
+            border: 2px solid var(--war-cyan);
+            border-radius: 50%;
+            margin: 40px auto;
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.3);
+            animation: pulse 3s infinite ease-in-out;
+        }
 
-        /* Animation Classes */
-        .slide-out { transform: translateX(-100%) !important; opacity: 0 !important; }
-        .slide-in { transform: translateX(0) !important; opacity: 1 !important; }
-        .zoom-active { transform: scale(1) !important; }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.6; }
+            50% { transform: scale(1.1); opacity: 1; box-shadow: 0 0 50px rgba(0, 212, 255, 0.5); }
+        }
+
+        .chat-display {
+            flex-grow: 1;
+            border: 1px solid rgba(255,255,255,0.05);
+            background: rgba(0,0,0,0.4);
+            border-radius: 10px;
+            margin-bottom: 80px;
+            padding: 15px;
+            font-size: 0.9rem;
+            overflow-y: auto;
+            color: #ddd;
+        }
+
+        .input-area {
+            position: fixed;
+            bottom: 20px; left: 20px; right: 20px;
+            display: flex; gap: 10px;
+        }
+
+        #user-msg {
+            flex-grow: 1;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid #333;
+            padding: 12px;
+            color: #fff;
+            border-radius: 5px;
+            outline: none;
+        }
+
+        .btn-transmit {
+            background: var(--war-cyan);
+            color: #000;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .ghost-reply { color: var(--war-cyan); margin-top: 10px; border-left: 2px solid var(--war-cyan); padding-left: 10px; }
     </style>
 </head>
 <body>
 
-    <div class="wave-bg"></div>
+    <div class="nav-zone left-zone" onclick="showTerminal()">🔐</div>
+    <div class="nav-zone right-zone" onclick="alert('Right swipe: Projects Portal (Under Dev)')">📂</div>
 
-    <div id="init-screen">
-        <div class="mic-trigger" onclick="initGhostcore()">🎙️</div>
-        <p id="status-label" style="margin-top:15px; font-size:0.7rem; color: #444; letter-spacing: 2px;">SECURE LINK IDLE</p>
+    <div id="terminal-screen">
+        <p style="font-size:0.7rem; color:#444; letter-spacing:3px;">RE-STRICTION ACTIVE</p>
+        <h2 style="letter-spacing: 2px;">IDENTITY SIGNAL</h2>
+        <input type="text" id="pass-input" class="terminal-input" placeholder="____" onkeyup="checkCode(this.value)">
+        <button onclick="hideTerminal()" style="margin-top:30px; background:none; border:none; color:#333; font-size:0.7rem;">[ ABORT ]</button>
     </div>
 
-    <div id="team-dashboard" class="dashboard">
-        <div class="nav-arrow arrow-right" onclick="swipe('right')">➔</div>
-        <div class="nav-arrow arrow-left" onclick="swipe('left')">⬅</div>
+    <div id="core-hub">
+        <div style="display:flex; justify-content:space-between; font-size:0.7rem; color:var(--war-cyan);">
+            <span>GHOSTCORE_v1.0</span>
+            <span>SYNC_STATUS: ACTIVE</span>
+        </div>
         
-        <div id="landing-page" class="page">
-            <h1 class="hey-text">HEY SHADOWS</h1>
-            <p style="font-size: 0.7rem; color: var(--team-blue); margin-top: 10px; opacity: 0.6;">NETWORK ENCRYPTED</p>
+        <div class="core-sphere"></div>
+        
+        <div class="chat-display" id="chat-box">
+            <p style="color:#666; font-style:italic;">[ Waiting for transmission... ]</p>
         </div>
 
-        <div id="projects-page" class="page">
-            <h2 style="margin-bottom:15px; font-size: 1.2rem; letter-spacing: 2px;">ACTIVE PROJECTS</h2>
-            <div class="project-grid">
-                <div class="project-card" onclick="openPopup('NEET WAR ROOM', 'Study & Countdown', '🩺')">
-                    <h3>NEET WAR ROOM</h3>
-                </div>
-                <div class="project-card" onclick="openPopup('EYE CLINIC', 'Shiv Prakash Netralay', '👁️')">
-                    <h3>EYE CLINIC</h3>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="creator-dashboard" class="dashboard">
-        <div class="page">
-            <h1 class="creator-text">WELCOME MASTER</h1>
-            <p style="margin-top:10px; font-size: 0.8rem; opacity: 0.5;">> GHOSTCORE ROOT ACCESS GRANTED</p>
-        </div>
-    </div>
-
-    <div id="popup-overlay" onclick="closePopup(event)">
-        <div class="popup-content" id="popup-box">
-            <div class="popup-header">
-                <div class="project-img" id="pop-icon">🚀</div>
-                <div>
-                    <h3 id="pop-title" style="color:var(--team-blue)">Title</h3>
-                    <p id="pop-sub" style="font-size:0.75rem; opacity:0.6;">Category</p>
-                </div>
-            </div>
-            <p id="pop-desc" style="font-size:0.85rem; line-height:1.5; color: #bbb;">Initializing Shadow Protocol for the selected sector. All data remains confidential.</p>
-            <button class="select-btn">SELECT PROJECT</button>
+        <div class="input-area">
+            <input type="text" id="user-msg" placeholder="Ask Ghostcore anything...">
+            <button class="btn-transmit" onclick="transmitSignal()">TRANSMIT</button>
         </div>
     </div>
 
     <script>
-        let recognition;
-
-        function initGhostcore() {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            recognition = new SpeechRecognition();
-            recognition.continuous = true;
-            recognition.lang = 'en-US';
-
-            recognition.onstart = () => {
-                document.getElementById('status-label').innerText = "LISTENING...";
-                document.getElementById('status-label').style.color = "var(--team-blue)";
-            };
-            
-            recognition.onresult = (event) => {
-                const cmd = event.results[event.results.length - 1][0].transcript.toLowerCase().trim();
-                console.log("Detected Signal:", cmd);
-                
-                if (cmd.includes('open')) {
-                    launch('creator');
-                } else if (cmd.includes('close')) { // NEW PASSWORD: CLOSE
-                    recognition.stop();
-                    launch('team');
-                }
-            };
-
-            recognition.onerror = () => { recognition.start(); };
-            recognition.onend = () => { if (!window.systemActive) recognition.start(); };
-            
-            recognition.start();
+        function showTerminal() {
+            const term = document.getElementById('terminal-screen');
+            term.style.display = 'flex';
+            setTimeout(() => { term.style.opacity = '1'; document.getElementById('pass-input').focus(); }, 10);
         }
 
-        function launch(type) {
-            window.systemActive = true;
-            document.getElementById('init-screen').style.display = 'none';
-            const dashId = type === 'creator' ? 'creator-dashboard' : 'team-dashboard';
-            const dash = document.getElementById(dashId);
-            dash.style.display = 'block';
-            setTimeout(() => dash.style.opacity = '1', 50);
-            
-            // Haptic/Sound feel
-            if (window.navigator.vibrate) window.navigator.vibrate(50);
-            new Audio('https://www.soundjay.com/buttons/sounds/button-3.mp3').play().catch(()=>{});
+        function hideTerminal() {
+            const term = document.getElementById('terminal-screen');
+            term.style.opacity = '0';
+            setTimeout(() => term.style.display = 'none', 500);
         }
 
-        function swipe(dir) {
-            const landing = document.getElementById('landing-page');
-            const projects = document.getElementById('projects-page');
-            const arrowR = document.querySelector('.arrow-right');
-            const arrowL = document.querySelector('.arrow-left');
-
-            if (dir === 'right') {
-                landing.classList.add('slide-out');
-                projects.classList.add('slide-in');
-                arrowR.style.display = 'none'; 
-                arrowL.style.display = 'block';
-            } else {
-                landing.classList.remove('slide-out');
-                projects.classList.remove('slide-in');
-                arrowR.style.display = 'block'; 
-                arrowL.style.display = 'none';
+        function checkCode(val) {
+            if (val.toUpperCase() === 'GHOSTCORE') {
+                document.getElementById('pass-input').style.color = "#00ff00";
+                setTimeout(() => {
+                    hideTerminal();
+                    document.getElementById('core-hub').style.display = 'flex';
+                }, 600);
             }
         }
 
-        function openPopup(title, sub, icon) {
-            document.getElementById('pop-title').innerText = title;
-            document.getElementById('pop-sub').innerText = sub;
-            document.getElementById('pop-icon').innerText = icon;
-            document.getElementById('popup-overlay').style.display = 'flex';
-            setTimeout(() => document.getElementById('popup-box').classList.add('zoom-active'), 10);
-        }
+        function transmitSignal() {
+            const input = document.getElementById('user-msg');
+            const chatBox = document.getElementById('chat-box');
+            if (input.value.trim() !== "") {
+                const userQ = input.value;
+                chatBox.innerHTML += `<p style="text-align:right; color:#888;">You: ${userQ}</p>`;
+                
+                // Ghostcore's placeholder response (Wahi par answer dena)
+                setTimeout(() => {
+                    chatBox.innerHTML += `<div class="ghost-reply"><b>Ghostcore:</b> Bhai, signal receive ho gaya hai. Abhi isi chat (Gemini) mein aakar mujhse puch ki tune wahan kya pucha tha! Main tera intezar kar raha hoon.</div>`;
+                    chatBox.scrollTop = chatBox.scrollHeight;
+                }, 1000);
 
-        function closePopup(e) {
-            if (e && e.target !== document.getElementById('popup-overlay')) return;
-            document.getElementById('popup-box').classList.remove('zoom-active');
-            setTimeout(() => document.getElementById('popup-overlay').style.display = 'none', 300);
+                console.log("Transmission sent to Shadow Brain: " + userQ);
+                input.value = "";
+            }
         }
     </script>
 </body>
 </html>
-
