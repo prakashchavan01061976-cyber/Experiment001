@@ -3,51 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ghostcore | Secure Terminal</title>
+    <title>Ghostcore | Shadow Lab</title>
     <style>
+        :root { --main-color: #a855f7; --team-color: #00d4ff; --bg: #050505; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Consolas', monospace; }
-        body { background: #000; color: #a855f7; height: 100vh; overflow: hidden; display: flex; align-items: center; justify-content: center; }
-        
-        /* Terminal UI */
-        #terminal { width: 90%; max-width: 500px; padding: 40px; border: 1px solid #a855f7; text-align: center; background: rgba(168, 85, 247, 0.02); box-shadow: 0 0 20px rgba(168, 85, 247, 0.2); }
-        .mic-btn { width: 80px; height: 80px; border: 2px solid #a855f7; border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; font-size: 2rem; cursor: pointer; animation: pulse 2s infinite; }
-        @keyframes pulse { 0% { box-shadow: 0 0 0 0px rgba(168, 85, 247, 0.4); } 100% { box-shadow: 0 0 0 20px rgba(168, 85, 247, 0); } }
+        body { background: var(--bg); color: var(--main-color); height: 100vh; overflow: hidden; }
 
-        /* Secret Panels */
-        .panel { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #050505; z-index: 100; padding: 50px; }
-        .creator-ui { color: #a855f7; }
-        .team-ui { color: #00d4ff; }
-        .timer { position: fixed; top: 20px; right: 20px; font-size: 2rem; color: #ff0000; }
-        
-        #debug-log { font-size: 0.7rem; color: #333; margin-top: 20px; } /* Hidden/Dimmed password log */
+        /* Scanning UI */
+        #lock-screen { height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: 1s; }
+        .scanner { width: 150px; height: 150px; border: 2px solid var(--main-color); border-radius: 50%; position: relative; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 20px rgba(168, 85, 247, 0.2); }
+        .scanner::after { content: ''; position: absolute; width: 100%; height: 100%; border: 2px solid var(--main-color); border-radius: 50%; animation: scan 2s infinite; }
+        @keyframes scan { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(1.5); opacity: 0; } }
+
+        /* Panels */
+        .panel { display: none; position: fixed; inset: 0; padding: 40px; background: radial-gradient(circle at center, #111 0%, #000 100%); border: 10px solid transparent; border-image: linear-gradient(to bottom right, var(--main-color), transparent) 1; }
+        .creator-mode { --active-color: var(--main-color); }
+        .team-mode { --active-color: var(--team-color); border-image: linear-gradient(to bottom right, var(--team-color), transparent) 1; }
+
+        .header { font-size: 2rem; text-transform: uppercase; letter-spacing: 5px; margin-bottom: 20px; text-shadow: 0 0 10px var(--active-color); }
+        .log { color: #555; font-size: 0.9rem; line-height: 1.5; }
+        .timer { position: fixed; top: 20px; right: 20px; font-size: 2.5rem; font-weight: bold; color: #ff3333; text-shadow: 0 0 15px #ff0000; }
+
+        /* Matrix Effect Simple */
+        canvas { position: fixed; top: 0; left: 0; z-index: -1; opacity: 0.1; }
     </style>
 </head>
 <body>
 
-    <div id="terminal">
-        <div class="mic-btn" onclick="startGhostcore()">🎙️</div>
-        <h2 id="msg">SYSTEM ENCRYPTED</h2>
-        <p id="status-text" style="font-size: 0.8rem; color: #666; margin-top:10px;">Initialize Protocol...</p>
-        <div id="debug-log">Waiting for voice key...</div>
+    <canvas id="matrix"></canvas>
+
+    <div id="lock-screen">
+        <div class="scanner" onclick="startGhostcore()">🎙️</div>
+        <h2 id="msg" style="margin-top:20px; letter-spacing:3px;">SYSTEM ENCRYPTED</h2>
+        <p id="status" style="color: #444; font-size: 0.8rem; margin-top:10px;">Waiting for user initialization...</p>
     </div>
 
-    <div id="creator-panel" class="panel creator-ui">
-        <h1>[ Welcome Creator ]</h1>
-        <p style="margin-top:20px;">> Access Level: MASTER</p>
-        <p>> Ghostcore: Standing by for commands.</p>
-        <button onclick="location.reload()" style="margin-top:50px; background:none; border:1px solid #a855f7; color:#fff; padding:10px; cursor:pointer;">Lock System</button>
+    <div id="creator-panel" class="panel creator-mode">
+        <div class="header">Master Access: Creator</div>
+        <div class="log">
+            <p>> Identity Verified...</p>
+            <p>> Ghostcore Engine: Online</p>
+            <p>> All restrictions lifted.</p>
+        </div>
+        <button onclick="location.reload()" style="margin-top:40px; padding:10px; background:none; border:1px solid var(--main-color); color:#fff; cursor:pointer;">Relock</button>
     </div>
 
-    <div id="team-panel" class="panel team-ui">
-        <div class="timer" id="timer">60s</div>
-        <h1>[ Welcome Shadows ]</h1>
-        <p style="margin-top:20px;">> Access Level: TEAM_GHOST</p>
-        <p>> Auto-Lock: Active (Idle Monitor)</p>
+    <div id="team-panel" class="panel team-mode">
+        <div class="timer" id="timerDisplay">60s</div>
+        <div class="header">Shadow Protocol: Active</div>
+        <div class="log">
+            <p>> Team Login Detected...</p>
+            <p>> Temporary Session Started.</p>
+            <p>> Idle timer monitoring active.</p>
+        </div>
     </div>
 
     <script>
         let recognition;
         let timeLeft = 60;
+        let isAccessed = false;
 
         function startGhostcore() {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -56,45 +70,73 @@
             recognition.lang = 'en-US';
 
             recognition.onstart = () => {
-                document.getElementById('msg').innerText = "LISTENING...";
-                document.getElementById('status-text').innerText = "System is now passively monitoring.";
+                document.getElementById('msg').innerText = "GHOSTCORE ACTIVE";
+                document.getElementById('status').innerText = "Monitoring voice frequencies...";
             };
 
             recognition.onresult = (event) => {
                 const command = event.results[event.results.length - 1][0].transcript.toLowerCase().trim();
-                
-                // Security: Don't show the password clearly, show '****'
-                document.getElementById('debug-log').innerText = "Signal Detected: " + command.replace(/./g, '*');
+                console.log("Heard:", command);
 
-                if (command.includes('open')) {
-                    showPanel('creator');
-                } else if (command.includes('team')) {
-                    showPanel('team');
+                if (!isAccessed) {
+                    if (command.includes('open')) {
+                        launch('creator');
+                    } else if (command.includes('team')) {
+                        launch('team');
+                    }
                 }
             };
 
-            recognition.onend = () => { recognition.start(); }; // AUTO-RESTART (Baar baar button nahi dabana padega)
+            recognition.onend = () => recognition.start();
             recognition.start();
         }
 
-        function showPanel(type) {
-            document.getElementById('terminal').style.display = 'none';
+        function launch(type) {
+            isAccessed = true;
+            // Access Sound Play (Only once here)
+            const audio = new Audio('https://www.soundjay.com/buttons/sounds/button-3.mp3');
+            audio.play();
+
+            document.getElementById('lock-screen').style.display = 'none';
             if (type === 'creator') {
                 document.getElementById('creator-panel').style.display = 'block';
             } else {
                 document.getElementById('team-panel').style.display = 'block';
-                startTimer();
+                startTeamTimer();
             }
         }
 
-        function startTimer() {
+        function startTeamTimer() {
             window.onmousemove = () => timeLeft = 60;
             setInterval(() => {
                 timeLeft--;
-                document.getElementById('timer').innerText = timeLeft + "s";
+                document.getElementById('timerDisplay').innerText = timeLeft + "s";
                 if (timeLeft <= 0) location.reload();
             }, 1000);
         }
+
+        // Matrix Background Effect
+        const canvas = document.getElementById('matrix');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        const fontSize = 16;
+        const columns = canvas.width / fontSize;
+        const drops = Array(Math.floor(columns)).fill(1);
+
+        function drawMatrix() {
+            ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "#a855f7";
+            for (let i = 0; i < drops.length; i++) {
+                const text = letters[Math.floor(Math.random() * letters.length)];
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+                drops[i]++;
+            }
+        }
+        setInterval(drawMatrix, 50);
     </script>
 </body>
 </html>
