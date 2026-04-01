@@ -3,105 +3,97 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ghostcore | Voice Security Protocol</title>
+    <title>Ghostcore | Secure Terminal</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Courier New', Courier, monospace; }
-        body { background: #000; color: #a855f7; height: 100vh; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Consolas', monospace; }
+        body { background: #000; color: #a855f7; height: 100vh; overflow: hidden; display: flex; align-items: center; justify-content: center; }
         
-        #terminal {
-            width: 90%; max-width: 500px; padding: 30px;
-            border: 2px solid #a855f7; background: rgba(168, 85, 247, 0.05);
-            box-shadow: 0 0 20px rgba(168, 85, 247, 0.3); border-radius: 10px; text-align: center;
-        }
+        /* Terminal UI */
+        #terminal { width: 90%; max-width: 500px; padding: 40px; border: 1px solid #a855f7; text-align: center; background: rgba(168, 85, 247, 0.02); box-shadow: 0 0 20px rgba(168, 85, 247, 0.2); }
+        .mic-btn { width: 80px; height: 80px; border: 2px solid #a855f7; border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; font-size: 2rem; cursor: pointer; animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0px rgba(168, 85, 247, 0.4); } 100% { box-shadow: 0 0 0 20px rgba(168, 85, 247, 0); } }
 
-        .mic-icon {
-            font-size: 50px; margin-bottom: 20px; cursor: pointer;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.1); opacity: 0.7; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-
-        .btn-init {
-            background: #a855f7; color: #000; border: none;
-            padding: 15px 30px; font-weight: bold; cursor: pointer;
-            text-transform: uppercase; letter-spacing: 2px; margin-top: 20px;
-        }
-
-        #status-text { margin-top: 20px; color: #888; font-size: 0.9rem; }
+        /* Secret Panels */
+        .panel { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #050505; z-index: 100; padding: 50px; }
+        .creator-ui { color: #a855f7; }
+        .team-ui { color: #00d4ff; }
+        .timer { position: fixed; top: 20px; right: 20px; font-size: 2rem; color: #ff0000; }
         
-        /* Secret Content */
-        #secret-area { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #050505; color: #0f0; padding: 50px; z-index: 100; }
+        #debug-log { font-size: 0.7rem; color: #333; margin-top: 20px; } /* Hidden/Dimmed password log */
     </style>
 </head>
 <body>
 
     <div id="terminal">
-        <div class="mic-icon">🎤</div>
-        <h2 id="msg">SYSTEM LOCKED</h2>
-        <p id="status-text">Click button to grant Voice Access</p>
-        <button class="btn-init" onclick="startGhostcore()">Initialize System</button>
+        <div class="mic-btn" onclick="startGhostcore()">🎙️</div>
+        <h2 id="msg">SYSTEM ENCRYPTED</h2>
+        <p id="status-text" style="font-size: 0.8rem; color: #666; margin-top:10px;">Initialize Protocol...</p>
+        <div id="debug-log">Waiting for voice key...</div>
     </div>
 
-    <div id="secret-area">
-        <h1>[ ACCESS GRANTED ]</h1>
-        <p style="margin-top:20px;">Welcome, Creator/Shadows.</p>
-        <p id="auth-log" style="color: #555; margin-top: 10px;"></p>
-        <button onclick="location.reload()" style="margin-top:50px; background:#444; color:#fff; border:none; padding:10px;">Re-Lock System</button>
+    <div id="creator-panel" class="panel creator-ui">
+        <h1>[ Welcome Creator ]</h1>
+        <p style="margin-top:20px;">> Access Level: MASTER</p>
+        <p>> Ghostcore: Standing by for commands.</p>
+        <button onclick="location.reload()" style="margin-top:50px; background:none; border:1px solid #a855f7; color:#fff; padding:10px; cursor:pointer;">Lock System</button>
+    </div>
+
+    <div id="team-panel" class="panel team-ui">
+        <div class="timer" id="timer">60s</div>
+        <h1>[ Welcome Shadows ]</h1>
+        <p style="margin-top:20px;">> Access Level: TEAM_GHOST</p>
+        <p>> Auto-Lock: Active (Idle Monitor)</p>
     </div>
 
     <script>
-        function startGhostcore() {
-            // Browser compatibility check
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            
-            if (!SpeechRecognition) {
-                alert("Bhai, tera browser Voice support nahi karta. Chrome ya Edge use kar!");
-                return;
-            }
+        let recognition;
+        let timeLeft = 60;
 
-            const recognition = new SpeechRecognition();
+        function startGhostcore() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.continuous = true;
             recognition.lang = 'en-US';
-            recognition.continuous = true; // Hamesha sunne ke liye
-            recognition.interimResults = false;
 
             recognition.onstart = () => {
-                document.getElementById('msg').innerText = "GHOSTCORE LISTENING...";
-                document.getElementById('status-text').innerText = "Clear voice command required: 'Open' or 'Team'";
-                document.getElementById('status-text').style.color = "#0f0";
+                document.getElementById('msg').innerText = "LISTENING...";
+                document.getElementById('status-text').innerText = "System is now passively monitoring.";
             };
 
             recognition.onresult = (event) => {
                 const command = event.results[event.results.length - 1][0].transcript.toLowerCase().trim();
-                console.log("Ghostcore Heard:", command);
-                document.getElementById('status-text').innerText = "Detected: " + command;
+                
+                // Security: Don't show the password clearly, show '****'
+                document.getElementById('debug-log').innerText = "Signal Detected: " + command.replace(/./g, '*');
 
-                if (command.includes('open') || command.includes('team')) {
-                    unlockSystem(command);
+                if (command.includes('open')) {
+                    showPanel('creator');
+                } else if (command.includes('team')) {
+                    showPanel('team');
                 }
             };
 
-            recognition.onerror = (event) => {
-                console.error("Error:", event.error);
-                if(event.error === 'not-allowed') {
-                    alert("Mic Permission DENIED! Address bar mein 'Lock' icon par click karke Allow kar.");
-                }
-            };
-
-            recognition.onend = () => {
-                recognition.start(); // Agar mic band ho jaye toh auto-restart
-            };
-
+            recognition.onend = () => { recognition.start(); }; // AUTO-RESTART (Baar baar button nahi dabana padega)
             recognition.start();
         }
 
-        function unlockSystem(cmd) {
+        function showPanel(type) {
             document.getElementById('terminal').style.display = 'none';
-            document.getElementById('secret-area').style.display = 'block';
-            document.getElementById('auth-log').innerText = "Auth Log: Voice Command '" + cmd + "' Verified.";
+            if (type === 'creator') {
+                document.getElementById('creator-panel').style.display = 'block';
+            } else {
+                document.getElementById('team-panel').style.display = 'block';
+                startTimer();
+            }
+        }
+
+        function startTimer() {
+            window.onmousemove = () => timeLeft = 60;
+            setInterval(() => {
+                timeLeft--;
+                document.getElementById('timer').innerText = timeLeft + "s";
+                if (timeLeft <= 0) location.reload();
+            }, 1000);
         }
     </script>
 </body>
