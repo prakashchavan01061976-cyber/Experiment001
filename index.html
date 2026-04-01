@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ghostcore | Voice Security Protocol</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Courier New', Courier, monospace; }
+        body { background: #000; color: #a855f7; height: 100vh; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        
+        #terminal {
+            width: 90%; max-width: 500px; padding: 30px;
+            border: 2px solid #a855f7; background: rgba(168, 85, 247, 0.05);
+            box-shadow: 0 0 20px rgba(168, 85, 247, 0.3); border-radius: 10px; text-align: center;
+        }
+
+        .mic-icon {
+            font-size: 50px; margin-bottom: 20px; cursor: pointer;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .btn-init {
+            background: #a855f7; color: #000; border: none;
+            padding: 15px 30px; font-weight: bold; cursor: pointer;
+            text-transform: uppercase; letter-spacing: 2px; margin-top: 20px;
+        }
+
+        #status-text { margin-top: 20px; color: #888; font-size: 0.9rem; }
+        
+        /* Secret Content */
+        #secret-area { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #050505; color: #0f0; padding: 50px; z-index: 100; }
+    </style>
+</head>
+<body>
+
+    <div id="terminal">
+        <div class="mic-icon">🎤</div>
+        <h2 id="msg">SYSTEM LOCKED</h2>
+        <p id="status-text">Click button to grant Voice Access</p>
+        <button class="btn-init" onclick="startGhostcore()">Initialize System</button>
+    </div>
+
+    <div id="secret-area">
+        <h1>[ ACCESS GRANTED ]</h1>
+        <p style="margin-top:20px;">Welcome, Creator/Shadows.</p>
+        <p id="auth-log" style="color: #555; margin-top: 10px;"></p>
+        <button onclick="location.reload()" style="margin-top:50px; background:#444; color:#fff; border:none; padding:10px;">Re-Lock System</button>
+    </div>
+
+    <script>
+        function startGhostcore() {
+            // Browser compatibility check
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            
+            if (!SpeechRecognition) {
+                alert("Bhai, tera browser Voice support nahi karta. Chrome ya Edge use kar!");
+                return;
+            }
+
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'en-US';
+            recognition.continuous = true; // Hamesha sunne ke liye
+            recognition.interimResults = false;
+
+            recognition.onstart = () => {
+                document.getElementById('msg').innerText = "GHOSTCORE LISTENING...";
+                document.getElementById('status-text').innerText = "Clear voice command required: 'Open' or 'Team'";
+                document.getElementById('status-text').style.color = "#0f0";
+            };
+
+            recognition.onresult = (event) => {
+                const command = event.results[event.results.length - 1][0].transcript.toLowerCase().trim();
+                console.log("Ghostcore Heard:", command);
+                document.getElementById('status-text').innerText = "Detected: " + command;
+
+                if (command.includes('open') || command.includes('team')) {
+                    unlockSystem(command);
+                }
+            };
+
+            recognition.onerror = (event) => {
+                console.error("Error:", event.error);
+                if(event.error === 'not-allowed') {
+                    alert("Mic Permission DENIED! Address bar mein 'Lock' icon par click karke Allow kar.");
+                }
+            };
+
+            recognition.onend = () => {
+                recognition.start(); // Agar mic band ho jaye toh auto-restart
+            };
+
+            recognition.start();
+        }
+
+        function unlockSystem(cmd) {
+            document.getElementById('terminal').style.display = 'none';
+            document.getElementById('secret-area').style.display = 'block';
+            document.getElementById('auth-log').innerText = "Auth Log: Voice Command '" + cmd + "' Verified.";
+        }
+    </script>
+</body>
+</html>
